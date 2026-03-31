@@ -63,7 +63,9 @@ export const PropertyPanel = () => {
       (errors) => {
         console.error("表单校验失败:", errors);
         const firstError = Object.values(errors)[0];
-        const errorMessage = firstError?.message || "表单填写有误，请检查";
+        const errorMessage = (typeof firstError === 'object' && firstError && 'message' in firstError && firstError.message)
+          ? String(firstError.message)
+          : "表单填写有误，请检查";
         void messageApi.error(errorMessage);
       }
     )();
