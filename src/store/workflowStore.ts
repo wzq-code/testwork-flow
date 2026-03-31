@@ -17,6 +17,7 @@ interface WorkflowState {
   dirty: boolean;
   validationMessage?: string;
   addNode: (type: NodeKind) => void;
+  deleteNode: (nodeId: string) => void;
   updateNode: (nodeId: string, updater: (node: WorkflowFlowNode) => WorkflowFlowNode) => void;
   selectNode: (nodeId?: string) => void;
   onNodesChange: (changes: any[]) => void;
@@ -78,13 +79,35 @@ export const useWorkflowStore = create<WorkflowState>((set) => ({
       }
 
       const count = state.document.nodes.length;
-      const newNode = createNode(type, 120 + count * 28, 120 + count * 24);
+      const newNode = createNode(type, 120 + count * 280, 120 + count * 120);
       return {
         document: {
           ...state.document,
           nodes: [...state.document.nodes, newNode]
         },
         selectedNodeId: newNode.id,
+        dirty: true,
+        validationMessage: undefined
+      };
+    }),
+  deleteNode: (nodeId) =>
+    set((state) => {
+      const nodeToDelete = state.document.nodes.find((node) => node.id === nodeId);
+      if (nodeToDelete?.type === "start") {
+        return {
+          validationMessage: "开始节点不能删除"
+        };
+      }
+
+      return {
+        document: {
+          ...state.document,
+          nodes: state.document.nodes.filter((node) => node.id !== nodeId),
+          edges: state.document.edges.filter(
+            (edge) => edge.source !== nodeId && edge.target !== nodeId
+          )
+        },
+        selectedNodeId: state.selectedNodeId === nodeId ? undefined : state.selectedNodeId,
         dirty: true,
         validationMessage: undefined
       };

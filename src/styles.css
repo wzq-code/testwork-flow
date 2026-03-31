@@ -63,9 +63,14 @@ body,
 }
 
 .canvas-column {
-  display: grid;
-  grid-template-rows: auto minmax(420px, 1fr) 240px;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
+}
+
+.canvas-column .canvas-panel {
+  flex: 1;
+  min-height: 420px;
 }
 
 .canvas-panel {
@@ -103,14 +108,32 @@ body,
   margin-bottom: 6px;
 }
 
+.node-delete-btn {
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.workflow-node:hover .node-delete-btn {
+  opacity: 1;
+}
+
 .workflow-node-desc {
   margin: 0 !important;
   color: #5b6a63;
 }
 
+.workflow-node .react-flow__handle {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
 .json-preview {
   padding: 16px;
   overflow: auto;
+  max-height: 240px;
+  flex-shrink: 0;
 }
 
 .json-preview pre {
@@ -184,7 +207,7 @@ body,
     grid-template-columns: 1fr;
   }
 
-  .canvas-column {
-    grid-template-rows: auto 520px 260px;
+  .canvas-column .canvas-panel {
+    min-height: 520px;
   }
 }

@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Alert, Button, Card, Empty, Form, Input, InputNumber, Radio, Select, Space, Switch, Typography } from "antd";
-import { useEffect, useMemo } from "react";
+import { Alert, Button, Card, Empty, Form, Input, InputNumber, Radio, Select, Space, Switch, Typography, message } from "antd";
+import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { useWorkflowStore } from "../../store/workflowStore";
 import type { WorkflowFlowNode } from "../../types/workflow";
@@ -24,6 +24,7 @@ const playbackOptions = [
 export const PropertyPanel = () => {
   const { document, catalogs, selectedNodeId, updateNode, setValidationMessage } = useWorkflowStore((state) => state);
   const selectedNode = useMemo(() => document.nodes.find((node) => node.id === selectedNodeId), [document.nodes, selectedNodeId]);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const form = useForm<NodeEditorForm>({
     resolver: zodResolver(nodeEditorSchema),
@@ -47,7 +48,30 @@ export const PropertyPanel = () => {
       label: selectedNode.data.label,
       config: selectedNode.data.config
     });
-  }, [form, selectedNode]);
+  }, [selectedNode]);
+
+  const submit = useCallback(() => {
+    form.handleSubmit(
+      (values) => {
+        updateNode(values.id, (node) => ({
+          ...node,
+          data: { ...node.data, label: values.label, config: values.config }
+        }));
+        setValidationMessage(undefined);
+        void messageApi.success("修改已应用");
+      },
+      (errors) => {
+        console.error("表单校验失败:", errors);
+        const firstError = Object.values(errors)[0];
+        const errorMessage = firstError?.message || "表单填写有误，请检查";
+        void messageApi.error(errorMessage);
+      }
+    )();
+  }, [form, updateNode, setValidationMessage, messageApi]);
+
+  const functionMode = form.watch("config.functionMode");
+  const functionDescription =
+    catalogs.functions.find((item) => item.id === form.watch("config.functionId"))?.description ?? "选择函数后展示函数说明";
 
   if (!selectedNode) {
     return (
@@ -62,24 +86,14 @@ export const PropertyPanel = () => {
     value: node.id
   }));
 
-  const submit = form.handleSubmit((values) => {
-    updateNode(values.id, (node) => ({
-      ...node,
-      data: { ...node.data, label: values.label, config: values.config }
-    }));
-    setValidationMessage(undefined);
-  });
-
   const type = selectedNode.type;
-  const functionMode = form.watch("config.functionMode");
-  const functionDescription =
-    catalogs.functions.find((item) => item.id === form.watch("config.functionId"))?.description ?? "选择函数后展示函数说明";
 
   return (
     <aside className="property-panel">
+      {contextHolder}
       <div className="section-title-row">
         <Typography.Title level={5}>节点属性</Typography.Title>
-        <Button type="primary" onClick={() => void submit()}>
+        <Button type="primary" onClick={submit}>
           应用修改
         </Button>
       </div>
