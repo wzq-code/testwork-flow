@@ -97,7 +97,7 @@ export const PropertyPanel = () => {
           应用修改
         </Button>
       </div>
-      {form.formState.errors.root?.message ? <Alert type="error" message={form.formState.errors.root.message} /> : null}
+      {form.formState.errors.root?.message ? <Alert type="error" message={String(form.formState.errors.root.message)} /> : null}
       <Form layout="vertical">
         <Card size="small" title="基础信息">
           <Form.Item label="节点 ID">
